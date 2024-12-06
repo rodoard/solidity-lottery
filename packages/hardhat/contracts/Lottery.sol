@@ -22,9 +22,33 @@ contract Lottery is Ownable {
     uint256 public betsClosingTime;
     address[] public _slots; 
     uint256 public betFees;
+    string tokenSymbol;
+    string tokenName;
     address public winner;
     mapping(address => uint256)  public prizeAmount;
     uint256 public ownerPool;
+
+   struct SessionInfo {
+     uint256 betPrice;
+     uint256 betFee;
+     address tokenAddress;
+     bool betsOpen;
+     uint256 nonce;
+     uint256 currentTimeStamp;
+     uint256 betsClosingTime;
+     bool isOwner;
+     uint256 prizeAmount;
+     uint256 prizePool;
+     uint256 ownerPool;
+     uint256 tokenBalance;
+     string tokenSymbol;
+     string tokenName;
+     bool isWinner;
+     uint256 maxBets;
+     bool isLotteryClosed;
+     bool isPastLotteryClosingTime;
+     uint256 purchaseRatio;
+   }
 
      /// @notice Passes when the lottery is at closed state
     modifier whenBetsClosed() {
@@ -54,43 +78,57 @@ contract Lottery is Ownable {
         uint256 _betPrice,
         uint256 _betFee
     ) Ownable() {
-        paymentToken = new LotteryToken(_tokenName, _tokenSymbol);
+        tokenName = _tokenName;
+        tokenSymbol = _tokenSymbol;
+        paymentToken = new LotteryToken(tokenName,tokenSymbol);
         purchaseRatio = _purchaseRatio;
         betPrice = _betPrice;
         betFee = _betFee;
     }
 
-   function isOwner(address account) external view returns(bool) {
-         return account == owner() ;
+   function isOwner() public view returns(bool) {
+         return msg.sender == owner() ;
    }
-
-    function isWinner(address account) external view returns(bool) {
-         return !betsOpen &&  account == winner;
-   }
-
    
-   function isLotteryClosed() external view returns(bool) {
+   function ownerAddress() external view returns(address){
+    return owner();
+   }
+
+    function senderAddress() external view returns(address){
+    return msg.sender;
+   }
+
+    function tokenAddress() public view returns(address){
+    return address(paymentToken);
+   }
+
+    function isWinner() public view returns(bool) {
+         return !betsOpen &&  msg.sender == winner;
+   }
+
+   function isLotteryClosed() public view returns(bool) {
          return !betsOpen;
    }
- 
-   function isPastLotteryClosingTime() external view returns(bool) {
-         return _isPastClosingTime();
-   }
 
-    function _isPastClosingTime() private view returns(bool) {
+    function currentTimeStamp() public view returns (uint256) {
+         return block.timestamp;
+   }
+ 
+    function isPastClosingTime() public view returns(bool) {
          return block.timestamp >= betsClosingTime;
    }
 
-    function tokenBalance(address account) external view returns(uint256) {
-         return  paymentToken.balanceOf(account);
+   function maxBets() public view returns(uint256) {
+         uint256 balance = tokenBalance();
+         return balance / (betFee + betPrice);
    }
 
-    function tokenSymbol() external view returns(string memory) {
-         return  paymentToken.symbol();
+   function tokenBalance() public view returns(uint256) {
+         return  paymentToken.balanceOf(msg.sender);
    }
-
+  
     /// @notice Opens the lottery for receiving bets
-    function openBets(uint256 closingTime) external onlyOwner whenBetsClosed {
+    function startLottery(uint256 closingTime) external onlyOwner whenBetsClosed {
         require(
             closingTime > block.timestamp,
             "Closing time must be in the future"
@@ -98,50 +136,101 @@ contract Lottery is Ownable {
         betsClosingTime = closingTime;
         betsOpen = true;
         winner = address(0);
+        prizePool = 0;
     }
 
     /// @notice Gives tokens based on the amount of ETH sent and the purchase ratio
     /// @dev This implementation is prone to rounding problems
     function purchaseTokens() external payable {
-        // TODO
         uint256 tokens = ethToTokens(msg.value);
         paymentToken.mint(msg.sender, tokens);
     }
 
-    /// @notice Charges the bet price and creates a new bet slot with the sender's address
-    function bet(address sender) public {
-        // TODO
-      _betMany(1, sender);
+    /// @notice Charges the bet price and creates a new bet slot with the msg.sender's address
+    function bet() public whenBetsOpen {
+      _betMany(1);
+    }
+
+   function nonces(address owner) private view returns(uint256) {
+      return paymentToken.nonces(owner);
     }
 
     function ethToTokens(uint256 eth) private view returns (uint256){
           return eth * purchaseRatio;
     }
+ 
+   function sessionInfo() external view returns(SessionInfo memory){
+     bool _isOwner = isOwner();
+     uint256 balance = tokenBalance();
+     bool isClosed = isLotteryClosed();
+     bool pastClosingTime = isPastClosingTime();
+     uint256 _maxBets = maxBets();
+     bool _isWinner = isWinner();
+     address _tokenAddress = tokenAddress();
+     uint256 _currentTimeStamp = currentTimeStamp();
+     uint256 _nonce = nonces(msg.sender);
+     SessionInfo memory info =  SessionInfo({
+       betPrice:betPrice,
+       currentTimeStamp: _currentTimeStamp,
+      betFee:betFee,
+      nonce:_nonce,
+      betsOpen: betsOpen,
+      tokenAddress: _tokenAddress,
+      betsClosingTime: betsClosingTime,
+      isOwner: _isOwner,
+      prizeAmount: prizeAmount[msg.sender],
+      prizePool: prizePool,
+      ownerPool: ownerPool,
+      tokenBalance:balance,
+      tokenName:tokenName,
+      isWinner: _isWinner,
+      tokenSymbol: tokenSymbol,
+      isLotteryClosed:isClosed,
+      isPastLotteryClosingTime:pastClosingTime,
+      maxBets:_maxBets,
+      purchaseRatio:purchaseRatio
+     });
+     return info;
+   }
 
-   function _betMany(uint256 times, address sender) private {
+   function _betMany(uint256 times) private {
         require(times > 0);
         uint256 requiredTokens = times * (betPrice + betFee);
-        uint256 availableTokens = paymentToken.balanceOf(sender);
+        uint256 availableTokens = paymentToken.balanceOf(msg.sender);
         require(availableTokens >= requiredTokens, "You do not have enough tokens");
-        while (times > 0) {
-            _slots.push(sender);
-            times--;
+        uint256 loop = times;
+        while (loop > 0) {
+            _slots.push(msg.sender);
+            loop--;
         }
        prizePool += betPrice * times;
        ownerPool += betFee * times;
-       paymentToken.transferFrom(sender,  address(this), requiredTokens);
+       paymentToken.transferFrom(msg.sender,  address(this), requiredTokens);
     }
 
+ /// @notice Calls the bet function `times` times
+    function permitBets(address owner,
+  address spender,
+  uint256 value,
+  uint256 deadline,
+  uint8 v,
+  bytes32 r,
+  bytes32 s) external {
+        uint256 requiredTokens = value;
+        uint256 availableTokens = paymentToken.balanceOf(msg.sender);
+        require(availableTokens >= requiredTokens, "You do not have enough tokens");
+        paymentToken.permit(owner, spender, value, deadline, v, r, s);
+     }
+
     /// @notice Calls the bet function `times` times
-    function betMany(uint256 times, address sender) external {
-       _betMany(times, sender);
+    function betMany(uint256 times) external whenBetsOpen {
+       _betMany(times);
      }
 
     /// @notice Closes the lottery and calculates the prize, if any
     /// @dev Anyone can call this function at any time after the closing time
     function closeLottery() external {
-        // TODO
-        require(_isPastClosingTime() , "Lottery still active");
+        require(isPastClosingTime() , "Lottery still active");
         require(betsOpen, "already closed");
         if (_slots.length > 0) {
             uint256 winnerIndex = getRandomNumber() % _slots.length;
@@ -160,21 +249,20 @@ contract Lottery is Ownable {
     }
 
     /// @notice Withdraws `amount` from that accounts's prize pool
-    function prizeWithdraw(uint256 amount, address sender) external {
-        // TODO
-        require(amount < prizeAmount[sender], "Do not have enough prize tokens" );
-       prizeAmount[sender] -= amount; 
-       paymentToken.transfer(sender, amount);       
+    function prizeWithdraw(uint256 amount) external {
+        require(amount <= prizeAmount[msg.sender], "Do not have enough prize tokens" );
+       prizeAmount[msg.sender] -= amount; 
+       paymentToken.transfer(msg.sender, amount);       
     }
 
     /// @notice Withdraws `amount` from the owner's pool
-    function ownerWithdraw(uint256 amount) external onlyOwner {
-        // TODO
+    function ownerWithdraw(uint256 amount) external onlyOwner returns(uint256){
           require(amount <= ownerPool, "Not enough fees collected");
         ownerPool -= amount;
            uint256 eth = tokensToEth(amount);
       (bool ok,) =  payable(msg.sender).call{value: eth}("");
       require(ok, "failed to send eth");
+      return eth;
     }
     
     function tokensToEth(uint256 amount) private view returns(uint256){
@@ -182,11 +270,13 @@ contract Lottery is Ownable {
     }
 
     /// @notice Burns `amount` tokens and give the equivalent ETH back to user
-    function returnTokens(uint256 amount, address sender) external {
-        // TODO
-        paymentToken.burnFrom(sender, amount);
+    function returnTokens(uint256 amount) external returns(uint256) {
+          uint256 availableTokens = paymentToken.balanceOf(msg.sender);
+        require(availableTokens >= amount, "You do not have enough tokens");
+        paymentToken.burnFrom(msg.sender, amount);
         uint256 eth = tokensToEth(amount);
-      (bool ok,) =  payable(sender).call{value: eth}("");
+      (bool ok,) =  payable(msg.sender).call{value: eth}("");
       require(ok, "failed to send eth");
+      return eth;
     }
 }

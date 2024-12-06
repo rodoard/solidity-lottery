@@ -23,9 +23,12 @@ const deployYourContract: DeployFunction = async function (hre: HardhatRuntimeEn
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
 
-  const BET_PRICE = parseEther("1");
-  const BET_FEE = parseEther("0.2");
-  const TOKEN_RATIO = parseEther("100"); 
+  
+
+
+  const BET_PRICE =parseEther("1");
+  const BET_FEE = parseEther("0.5");
+  const TOKEN_RATIO = 1n; 
   const TOKEN_NAME="LotteryToken"
   const TOKEN_SYMBOL = "LTO"
   

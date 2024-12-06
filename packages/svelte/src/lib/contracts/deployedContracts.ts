@@ -7,7 +7,7 @@ import type { GenericContractsDeclaration } from "$lib/utils/scaffold-eth/contra
 const deployedContracts = {
   31337: {
     Lottery: {
-      address: "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
+      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
       abi: [
         {
           inputs: [
@@ -79,13 +79,7 @@ const deployedContracts = {
           type: "function",
         },
         {
-          inputs: [
-            {
-              internalType: "address",
-              name: "sender",
-              type: "address",
-            },
-          ],
+          inputs: [],
           name: "bet",
           outputs: [],
           stateMutability: "nonpayable",
@@ -123,11 +117,6 @@ const deployedContracts = {
               internalType: "uint256",
               name: "times",
               type: "uint256",
-            },
-            {
-              internalType: "address",
-              name: "sender",
-              type: "address",
             },
           ],
           name: "betMany",
@@ -183,6 +172,19 @@ const deployedContracts = {
         },
         {
           inputs: [],
+          name: "currentTimeStamp",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
           name: "isLotteryClosed",
           outputs: [
             {
@@ -195,13 +197,7 @@ const deployedContracts = {
           type: "function",
         },
         {
-          inputs: [
-            {
-              internalType: "address",
-              name: "account",
-              type: "address",
-            },
-          ],
+          inputs: [],
           name: "isOwner",
           outputs: [
             {
@@ -215,7 +211,7 @@ const deployedContracts = {
         },
         {
           inputs: [],
-          name: "isPastLotteryClosingTime",
+          name: "isPastClosingTime",
           outputs: [
             {
               internalType: "bool",
@@ -227,13 +223,7 @@ const deployedContracts = {
           type: "function",
         },
         {
-          inputs: [
-            {
-              internalType: "address",
-              name: "account",
-              type: "address",
-            },
-          ],
+          inputs: [],
           name: "isWinner",
           outputs: [
             {
@@ -246,21 +236,34 @@ const deployedContracts = {
           type: "function",
         },
         {
-          inputs: [
+          inputs: [],
+          name: "maxBets",
+          outputs: [
             {
               internalType: "uint256",
-              name: "closingTime",
+              name: "",
               type: "uint256",
             },
           ],
-          name: "openBets",
-          outputs: [],
-          stateMutability: "nonpayable",
+          stateMutability: "view",
           type: "function",
         },
         {
           inputs: [],
           name: "owner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "ownerAddress",
           outputs: [
             {
               internalType: "address",
@@ -293,7 +296,13 @@ const deployedContracts = {
             },
           ],
           name: "ownerWithdraw",
-          outputs: [],
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
           stateMutability: "nonpayable",
           type: "function",
         },
@@ -308,6 +317,49 @@ const deployedContracts = {
             },
           ],
           stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "owner",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "spender",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "value",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "deadline",
+              type: "uint256",
+            },
+            {
+              internalType: "uint8",
+              name: "v",
+              type: "uint8",
+            },
+            {
+              internalType: "bytes32",
+              name: "r",
+              type: "bytes32",
+            },
+            {
+              internalType: "bytes32",
+              name: "s",
+              type: "bytes32",
+            },
+          ],
+          name: "permitBets",
+          outputs: [],
+          stateMutability: "nonpayable",
           type: "function",
         },
         {
@@ -349,11 +401,6 @@ const deployedContracts = {
               name: "amount",
               type: "uint256",
             },
-            {
-              internalType: "address",
-              name: "sender",
-              type: "address",
-            },
           ],
           name: "prizeWithdraw",
           outputs: [],
@@ -394,26 +441,8 @@ const deployedContracts = {
               name: "amount",
               type: "uint256",
             },
-            {
-              internalType: "address",
-              name: "sender",
-              type: "address",
-            },
           ],
           name: "returnTokens",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "account",
-              type: "address",
-            },
-          ],
-          name: "tokenBalance",
           outputs: [
             {
               internalType: "uint256",
@@ -421,17 +450,166 @@ const deployedContracts = {
               type: "uint256",
             },
           ],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "senderAddress",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
           stateMutability: "view",
           type: "function",
         },
         {
           inputs: [],
-          name: "tokenSymbol",
+          name: "sessionInfo",
           outputs: [
             {
-              internalType: "string",
+              components: [
+                {
+                  internalType: "uint256",
+                  name: "betPrice",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "betFee",
+                  type: "uint256",
+                },
+                {
+                  internalType: "address",
+                  name: "tokenAddress",
+                  type: "address",
+                },
+                {
+                  internalType: "bool",
+                  name: "betsOpen",
+                  type: "bool",
+                },
+                {
+                  internalType: "uint256",
+                  name: "nonce",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "currentTimeStamp",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "betsClosingTime",
+                  type: "uint256",
+                },
+                {
+                  internalType: "bool",
+                  name: "isOwner",
+                  type: "bool",
+                },
+                {
+                  internalType: "uint256",
+                  name: "prizeAmount",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "prizePool",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "ownerPool",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "tokenBalance",
+                  type: "uint256",
+                },
+                {
+                  internalType: "string",
+                  name: "tokenSymbol",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "tokenName",
+                  type: "string",
+                },
+                {
+                  internalType: "bool",
+                  name: "isWinner",
+                  type: "bool",
+                },
+                {
+                  internalType: "uint256",
+                  name: "maxBets",
+                  type: "uint256",
+                },
+                {
+                  internalType: "bool",
+                  name: "isLotteryClosed",
+                  type: "bool",
+                },
+                {
+                  internalType: "bool",
+                  name: "isPastLotteryClosingTime",
+                  type: "bool",
+                },
+                {
+                  internalType: "uint256",
+                  name: "purchaseRatio",
+                  type: "uint256",
+                },
+              ],
+              internalType: "struct Lottery.SessionInfo",
               name: "",
-              type: "string",
+              type: "tuple",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "closingTime",
+              type: "uint256",
+            },
+          ],
+          name: "startLottery",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "tokenAddress",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "tokenBalance",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
             },
           ],
           stateMutability: "view",
