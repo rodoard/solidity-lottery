@@ -1,14 +1,26 @@
-# Scaffold-ETH-Svelte
+# Solidity Lottery Full Stack
 
-A port of [Scaffold-ETH 2](https://github.com/scaffold-eth/scaffold-eth-2) into SvelteKit/SvelteJS 5.
+A dApp based on scaffold-eth-svelte that implements a lottery that requires
+purchasing lottery tokens using eth
+to place bets.  Winner is a randomly
+player who has placed bets in the current lottery session.  Winner
+is awarded lottery tokens.  Lottery
+owner collects fees on every bet
+and can get the equivalent eth amount
+when the lottery closes.  Anyone
+can close lottery after elapsed time.
+Only owner can start the lottery immediately by specifying a duration 
+in seconds.  Players can burn tokens
+and get back eth.  Players can claim
+their prize to increase their token balance. 
 
 ## Getting Started
 
 1. Clone this repo
 
 ```
-git clone https://github.com/byteatatime/scaffold-eth-svelte.git
-cd scaffold-eth-svelte
+git clone https://github.com/rodoard/solidity-fullstack.git
+cd solidity-fullstack
 yarn
 ```
 
@@ -30,8 +42,13 @@ yarn deploy
 yarn start
 ```
 
-Your app should now be running on `http://localhost:5173`.
+Your app should now be running on `http://localhost:3000`.
 
 ## Documentation
 
-This part is currently WIP. For now, you can refer to the [Scaffold-ETH 2](https://docs.scaffoldeth.io/) documentation, as most of the concepts are the same.
+![Lottery Start!]("./lottery-start.png")
+
+![Lottery Home!]("./lottery-home.png")
+
+![Lottery Congrats!]("./lottery-congrats.png")
+
